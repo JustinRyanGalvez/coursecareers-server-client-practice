@@ -5,6 +5,8 @@
 import { exec } from 'child_process';
 import open, { apps } from 'open';
 import dotenv from 'dotenv';
+import Database from 'better-sqlite3';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -19,6 +21,38 @@ const args = process.argv.slice(2);
 const command = args[0];
 const favorite = args[1];
 const url = args[2];
+
+let db;
+const dbPath = 'favorites.db';
+
+function init() {
+  console.log('Initializing database...');
+  db = new Database(dbPath);
+
+  const createTable = `
+    CREATE TABLE IF NOT EXISTS favorites (
+      id INTEGER PRIMARY KEY,
+      name TEXT NOT NULL, 
+      url TEXT NOT NULL
+    )
+  `;
+
+  db.exec(createTable);
+
+  const data = [
+    { name: 'goog', url: 'https://google.com' },
+    { name: 'social', url: 'https://instagram.com' },
+    { name: 'code', url: 'https://leetcode.com' },
+  ];
+
+  const insertData = db.prepare(
+    'INSERT INTO favorites (name, url) VALUES (?,?)',
+  );
+
+  data.forEach((favorite) => {
+    insertData.run(favorite.name, favorite.url);
+  });
+}
 
 function checkBrowser() {
   // Remember question mark means if any of these throw undefined, do not crash system, instead throw error
@@ -47,18 +81,13 @@ function displayMenu() {
 }
 
 async function openFavorite(favorite) {
+  const row = db
+    .prepare('SELECT * FROM favorites WHERE name = ?')
+    .get(favorite);
+
+  const url = row.url;
+
   console.log('Opening', favorite);
-  let url;
-  if (favorite === 'goog') {
-    url = 'https://google.com';
-  } else if (favorite === 'social') {
-    url = 'https://instagram.com';
-  } else if (favorite === 'code') {
-    url = 'https://leetcode.com';
-  } else {
-    console.log(`shortcut ${favorite} does not exist`);
-    return;
-  }
 
   // let command;
 
@@ -109,6 +138,12 @@ function rm(favorite) {
 
 // const browser = process.env.BROWSER;
 // console.log('Opening with', browser);
+
+if (!fs.existsSync(dbPath)) {
+  init();
+} else {
+  db = new Database(dbPath);
+}
 
 // Prints help menu
 if (!command || !favorite || command === 'help') {
