@@ -1,7 +1,10 @@
 {
-  "name": "cli",
-  "version": "1.0.0",
-  "description": "",
+  "name": "favorites-cli",
+  "version": "1.0.1",
+  "description": "Easily launch your favorite websites.",
+  "files": [
+    "src/main.js"
+  ],
   "main": "index.js",
   "scripts": {
     "start": "node src/main.js"
@@ -10,6 +13,9 @@
   "author": "",
   "license": "ISC",
   "type": "module",
+  "bin": {
+    "favs": "src/main.js"
+  },
   "dependencies": {
     "better-sqlite3": "^12.6.2",
     "dotenv": "^17.2.3",

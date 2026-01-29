@@ -76,10 +76,9 @@ function checkBrowser() {
 }
 
 function displayMenu() {
-  console.log('ls                     : List all favorites');
   console.log('open <favorite>        : Open a saved favorite');
-  console.log('add <favorite> <url>   : Add a new favorite for some URL');
-  console.log('rm <favorite>          : Remove a saved favorite.');
+  console.log('add <favorite> <url>   : add a new favorite for some URL');
+  console.log('rm <favorite>          : remove a saved favorite.');
 }
 
 async function openFavorite(favorite) {
@@ -87,16 +86,13 @@ async function openFavorite(favorite) {
     .prepare('SELECT * FROM favorites WHERE name = ?')
     .get(favorite);
 
-  if (!row) {
-    console.log('Favorite not found');
-    process.exit(1);
-  }
   const url = row.url;
-  console.log('Opening', url);
 
-  // Without using import open
+  console.log('Opening', favorite);
 
   // let command;
+
+  // Without using import open
 
   // switch (process.platform) {
   //   case 'darwin':
@@ -116,6 +112,7 @@ async function openFavorite(favorite) {
 
   // }
 
+  console.log('opening', url);
   const appName = checkBrowser();
 
   // If user doesn't provide a browser, open with default browser
@@ -129,24 +126,11 @@ async function openFavorite(favorite) {
 }
 
 function add(favorite, url) {
-  db.prepare('INSERT INTO favorites (name, url) VALUES (?, ?)').run(
-    favorite,
-    url,
-  );
   console.log('adding', favorite, url);
 }
 
 function rm(favorite) {
-  db.prepare('DELETE FROM favorites WHERE name = ?').run(favorite);
-  console.log('removing', favorite);
-}
-
-function ls() {
-  const favorites = db.prepare('SELECT * FROM favorites').all();
-  console.log('All favorites:');
-  favorites.forEach((favorite) => {
-    console.log(`${favorite.name}: ${favorite.url}`);
-  });
+  console.log('rm', favorite);
 }
 
 // Environmental variables - grab environment variable I write in terminal after process.env.envVarName
@@ -169,7 +153,21 @@ const argCount = args.length;
 
 /*if (argsCount === 0 || ['ls', 'open', 'rm', 'add'].includes(command)) {
   displayMenu();
-  process.exit(1);
+} else {
+  switch (command) {
+    case 'open':
+      openFavorite(favorite);
+      break;
+    case 'add':
+      if (!url) {
+        displayMenu();
+        break;
+      }
+      add(favorite, url);
+      break;
+    case 'rm':
+      rm(favorite);
+  }
 }
 
 switch (command) {
