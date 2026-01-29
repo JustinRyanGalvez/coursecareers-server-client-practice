@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // Without ECMA
 // const { exec } = require('child_process');
 
@@ -58,7 +59,7 @@ function checkBrowser() {
   // Remember question mark means if any of these throw undefined, do not crash system, instead throw error
   const browser = process.env?.BROWSER?.toLocaleLowerCase();
   let appName = browser;
-  console.log(appName);
+  // console.log(appName);
 
   switch (browser) {
     case 'chrome':
@@ -162,9 +163,11 @@ if (!fs.existsSync(dbPath)) {
 }
 
 // Prints help menu
-/*const argsCount = args.length;
+const argCount = args.length;
 
-if (argsCount === 0 || ['ls', 'open', 'rm', 'add'].includes(command)) {
+//One way to do it, lots of switch statements but good readability
+
+/*if (argsCount === 0 || ['ls', 'open', 'rm', 'add'].includes(command)) {
   displayMenu();
   process.exit(1);
 }
@@ -197,11 +200,12 @@ switch (command) {
 }
 */
 
+// Less code, same outcome
 const commands = {
   ls: { f: ls, argCount: 1 },
   open: { f: openFavorite, argCount: 2 },
   rm: { f: rm, argCount: 2 },
-  add: { f: add, argCount: 3   },
+  add: { f: add, argCount: 3 },
 };
 
 if (
