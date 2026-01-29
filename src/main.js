@@ -75,9 +75,10 @@ function checkBrowser() {
 }
 
 function displayMenu() {
+  console.log('ls                     : List all favorites');
   console.log('open <favorite>        : Open a saved favorite');
-  console.log('add <favorite> <url>   : add a new favorite for some URL');
-  console.log('rm <favorite>          : remove a saved favorite.');
+  console.log('add <favorite> <url>   : Add a new favorite for some URL');
+  console.log('rm <favorite>          : Remove a saved favorite.');
 }
 
 async function openFavorite(favorite) {
@@ -85,13 +86,16 @@ async function openFavorite(favorite) {
     .prepare('SELECT * FROM favorites WHERE name = ?')
     .get(favorite);
 
+  if (!row) {
+    console.log('Favorite not found');
+    process.exit(1);
+  }
   const url = row.url;
-
-  console.log('Opening', favorite);
-
-  // let command;
+  console.log('Opening', url);
 
   // Without using import open
+
+  // let command;
 
   // switch (process.platform) {
   //   case 'darwin':
@@ -111,7 +115,6 @@ async function openFavorite(favorite) {
 
   // }
 
-  console.log('opening', url);
   const appName = checkBrowser();
 
   // If user doesn't provide a browser, open with default browser
@@ -125,11 +128,24 @@ async function openFavorite(favorite) {
 }
 
 function add(favorite, url) {
+  db.prepare('INSERT INTO favorites (name, url) VALUES (?, ?)').run(
+    favorite,
+    url,
+  );
   console.log('adding', favorite, url);
 }
 
 function rm(favorite) {
-  console.log('rm', favorite);
+  db.prepare('DELETE FROM favorites WHERE name = ?').run(favorite);
+  console.log('removing', favorite);
+}
+
+function ls() {
+  const favorites = db.prepare('SELECT * FROM favorites').all();
+  console.log('All favorites:');
+  favorites.forEach((favorite) => {
+    console.log(`${favorite.name}: ${favorite.url}`);
+  });
 }
 
 // Environmental variables - grab environment variable I write in terminal after process.env.envVarName
@@ -146,21 +162,55 @@ if (!fs.existsSync(dbPath)) {
 }
 
 // Prints help menu
-if (!command || !favorite || command === 'help') {
+/*const argsCount = args.length;
+
+if (argsCount === 0 || ['ls', 'open', 'rm', 'add'].includes(command)) {
   displayMenu();
-} else {
-  switch (command) {
-    case 'open':
-      openFavorite(favorite);
-      break;
-    case 'add':
-      if (!url) {
-        displayMenu();
-        break;
-      }
-      add(favorite, url);
-      break;
-    case 'rm':
-      rm(favorite);
-  }
+  process.exit(1);
 }
+
+switch (command) {
+  case 'ls':
+    ls();
+    break;
+  case 'open':
+    if (argCount < 2) {
+      displayMenu();
+      process.exit(1);
+    }
+    openFavorite(favorite);
+    break;
+  case 'add':
+    if (argCount < 3) {
+      displayMenu();
+      process.exit(1);
+    }
+    add(favorite, url);
+    break;
+  case 'rm':
+    if (argCount < 2) {
+      displayMenu();
+      process.exit(1);
+    }
+    rm(favorite);
+    break;
+}
+*/
+
+const commands = {
+  ls: { f: ls, argCount: 1 },
+  open: { f: openFavorite, argCount: 2 },
+  rm: { f: rm, argCount: 2 },
+  add: { f: add, argCount: 3   },
+};
+
+if (
+  argCount === 0 ||
+  !commands[command] ||
+  argCount < commands[command].argCount
+) {
+  displayMenu();
+  process.exit(1);
+}
+
+commands[command].f(favorite, url);
